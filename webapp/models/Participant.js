@@ -10,4 +10,10 @@ const ParticipantSchema = new mongoose.Schema({
     win_date: { type: Date }, // Дата победы в раздачи
 });
 
+// Индекс по ID Раздачи и ID Пользователя
+ParticipantSchema.index(
+	{ promotion_id: 1, user_id: 1 },
+	{ unique: true }
+);
+
 export default mongoose.models.Participant || mongoose.model('Participant', ParticipantSchema);

@@ -66,7 +66,11 @@ export async function setAllParticipants(user_id) {
 		const result = await Participant.insertMany(participantsData, { ordered: false });
 		return result;
 	} catch (error) {
-		logger.error('Ошибка добавления участий:', error);
+		if (error.code === 11000) {
+			logger.error('Пользователь уже участвует в данной акции');
+		} else {
+			logger.error('Ошибка добавления участий:', error);
+		}
 	}
 }
 
@@ -78,7 +82,7 @@ export async function deleteAllParticipants(user_id, { onlyActive = true } = {})
 		// Подключаемся к базе
 		await connectToDatabase();
 		// Определяем фильтр по промоакциям
-		const promotionFilter = onlyActive ? { status: "active" } : {};
+		const promotionFilter = onlyActive ? { status: "active", is_private: true } : {};
 		const promotions = await getPromotions(promotionFilter);
 		// Проверяем данные
 		if (!promotions || promotions.length === 0) {
@@ -117,11 +121,11 @@ export async function setParticipants(promotion_id, users) {
 			status: 'pending',
 			participation_date: new Date()
 		}));
-		
+
 		// Используем insertMany с ordered: false — чтобы продолжить при дубликатах
 		const result = await Participant.insertMany(participantsData, {
 			ordered: false,
-			rawResult: true 
+			rawResult: true
 		});
 
 		return result.insertedCount || result.nInserted || 0;
